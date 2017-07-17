@@ -1,0 +1,81 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>技术雷达图</title>
+    <script src="/static/echarts.min.js"></script>
+    <script src="/static/jquery-2.2.4.min.js"></script>
+</head>
+
+<body>
+    <input type="text" id="username" placeholder="请输入CSDN博主ID"> &nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="button" id="compute" value="评估"><br/>
+    <div id="container" style="width: 600px;height:400px;"></div>
+</body>
+
+<script>
+    var mycharts = echarts.init(document.getElementById('container'));
+    mycharts.showLoading();
+    var names = [];
+    var scores = [];
+    function prepare_data() {
+        $(document).ready(function () {
+            $.ajax({
+                url: 'http://localhost:8888/api/user/' + $("#username").val(),
+                dataType: 'json',
+                success: function (result) {
+                    mycharts.hideLoading();
+                    // 计算相关数据
+                    for (var index = 0; index < result.length; index++) {
+                        names.push({
+                            name: result[index].name,
+                            max: 100
+                        });
+                        scores.push(
+                            result[index].score
+                        );
+                    }
+                    console.log(JSON.stringify(names));
+                    console.log(JSON.stringify(scores));
+                    show_data();
+                },
+                error: function (err) {
+                    console.log(JSON.stringify(err));
+                }
+            })
+        });
+    }
+
+    function show_data() {
+        var option = {
+            title: {
+                text: '基础雷达图'
+            },
+            tooltip: {},
+            legend: {
+                data: ['预算分配（Allocated Budget）', '实际开销（Actual Spending）']
+            },
+            radar: {
+                indicator: names
+            },
+            series: [{
+                name: '预算 vs 开销（Budget vs spending）',
+                type: 'radar',
+                areaStyle: { normal: {} },
+                data: [
+                    {
+                        value: scores,
+                        name: '预算分配（Allocated Budget）'
+                    }
+                ]
+            }]
+        };
+        mycharts.setOption(option);
+        // 触发ajax事件，计算给定用户名博主的技术雷达计算。
+        // 先响应一个加载动画比较好。
+        mycharts.hideLoading();
+    }
+    $("#compute").click(function () {
+        prepare_data();
+    });
+</script>
+</html>

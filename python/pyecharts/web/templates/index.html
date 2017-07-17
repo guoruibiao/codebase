@@ -1,0 +1,128 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>技术雷达图</title>
+    <script src="/static/echarts.min.js"></script>
+    <script src="/static/jquery-2.2.4.min.js"></script>
+</head>
+
+<body>
+    <input type="text" id="username" value='radar' placeholder="请输入CSDN博主ID"> &nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="button" id="compute" value="评估"><br/>
+    <div id="container" style="width: 600px;height:400px;"></div>
+    <hr>
+    <a href="" download=""target.png id="target">
+        <img src="" alt="" id="saveimg">
+    </a>
+    <hr>
+    <p id="imgdata"></p>
+    <img src="" alt="" id="test">
+</body>
+
+<script>
+    var mycharts = echarts.init(document.getElementById('container'));
+    mycharts.showLoading();
+    var names = [];
+    var scores = [];
+    function prepare_data() {
+        $(document).ready(function () {
+            $.ajax({
+                url: 'http://localhost:8888/api/charts/' + $("#username").val(),
+                dataType: 'json',
+                success: function (result) {
+                    mycharts.hideLoading();
+                    // 计算相关数据
+                    for (var index = 0; index < result.length; index++) {
+                        names.push({
+                            name: result[index].name,
+                            max: 100
+                        });
+                        scores.push(
+                            result[index].score
+                        );
+                    }
+                    console.log(JSON.stringify(names));
+                    console.log(JSON.stringify(scores));
+                    // 显示服务器端获取到的图表数据
+                    show_data();
+                    // 触发canvas转图片处理.不知道为啥，需要调两次点击事件才会有效果。。。
+                    data_url = canvas2image();
+                    document.getElementById('test').src = data_url;
+                    document.getElementById('imgdata').innerText= data_url;
+                },
+                error: function (err) {
+                    console.log(JSON.stringify(err));
+                }
+            })
+        });
+    }
+
+
+    //base64 转换为原生二进制
+        function convertToBinary(dataURI) {
+            // convert base64 to raw binary data held in a string
+            // doesn't handle URLEncoded DataURIs
+            var byteString = atob(dataURI.split(',')[1]);
+
+            // separate out the mime component
+            var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+            // write the bytes of the string to an ArrayBuffer
+            var ab = new ArrayBuffer(byteString.length);
+            var ia = new Uint8Array(ab);
+            for (var i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+
+            // write the ArrayBuffer to a blob, and you're done
+            var bb = new Blob([ ab ]);
+            console.log("arraybuffer: ", JSON.stringify(bb));
+            return bb;
+        }
+
+
+    function canvas2image(){
+        var img = document.getElementById('saveimg');
+        var data = document.getElementsByTagName('canvas')[0].toDataURL("image/png");
+        var a = document.getElementById('target');
+        a.href = data;
+        img.src=data;
+        console.log("data-----\n:", data);
+        return data;
+    }
+
+    function show_data() {
+        var option = {
+            title: {
+                text: '基础雷达图'
+            },
+            tooltip: {},
+            legend: {
+                data: ['预算分配（Allocated Budget）', '实际开销（Actual Spending）']
+            },
+            radar: {
+                indicator: names
+            },
+            series: [{
+                name: '预算 vs 开销（Budget vs spending）',
+                type: 'radar',
+                areaStyle: { normal: {} },
+                data: [
+                    {
+                        value: scores,
+                        name: '预算分配（Allocated Budget）'
+                    }
+                ]
+            }]
+        };
+        mycharts.setOption(option);
+        // 触发ajax事件，计算给定用户名博主的技术雷达计算。
+        // 先响应一个加载动画比较好。
+        mycharts.hideLoading();
+    }
+    $("#compute").click(function () {
+        prepare_data();
+        prepare_data();
+    });
+</script>
+</html>

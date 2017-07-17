@@ -1,0 +1,6 @@
+PyAudio==0.2.11
+PyQt5==5.8.2
+pyttsx==1.1
+pywin32==221
+requests==2.13.0
+sip==4.19.2

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test</title>
+    <script src="img-previewer.js"></script>
+</head>
+<body>
+<input type="file" id="file" multiple onchange="preview()">
+<div id="container">
+
+</div>
+
+<script>
+
+    function preview(){
+        var config = {
+            tip: "fuck",
+            fileId: "file",
+            containerId: "container",
+            imgStyle: "width:320px;height:auto;border-radius:64%;"
+        }
+        var previewer = new ImgPrevirewer(config);
+        previewer.preview();
+    }
+
+</script>
+</body>
+</html>
